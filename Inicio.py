@@ -66,8 +66,15 @@ canvas_result = st_canvas(
 # ---------------- API ----------------
 api_key = st.text_input("Ingresa tu API Key", type="password")
 
-if api_key:
+if not api_key:
+    st.warning("Ingresa tu API Key para activar el reconocimiento")
+    st.stop()
+
+try:
     client = OpenAI(api_key=api_key)
+except Exception as e:
+    st.error("Error inicializando cliente OpenAI")
+    st.stop()
 
 # ---------------- FUNCION ----------------
 def encode_image(image):
@@ -80,13 +87,11 @@ if st.button("🔍 Analizar dibujo"):
 
     if canvas_result.image_data is None:
         st.warning("Primero dibuja una bandera")
-    elif not api_key:
-        st.warning("Debes ingresar tu API Key")
     else:
         with st.spinner("Analizando..."):
 
             try:
-                # Convertir imagen correctamente (esto era clave)
+                # Convertir imagen correctamente
                 img_array = np.array(canvas_result.image_data)
 
                 if img_array.shape[2] == 4:
@@ -101,11 +106,11 @@ if st.button("🔍 Analizar dibujo"):
 
                 Identifica la bandera y responde EXACTAMENTE en este formato:
 
-                País: 
-                Comida típica: 
+                País:
+                Comida típica:
                 Idioma:
 
-                No agregues texto extra.
+                No agregues nada más.
                 """
 
                 response = client.chat.completions.create(
@@ -133,4 +138,5 @@ if st.button("🔍 Analizar dibujo"):
                 st.write(resultado)
 
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error("❌ Error de conexión con la API")
+                st.write("Detalle:", e)
